@@ -27,6 +27,11 @@ class Modules implements Countable
 	protected $path;
 
 	/**
+	 * @var string $host Host to current domain
+	 */
+	protected $host;
+
+	/**
 	 * Constructor method.
 	 *
 	 * @param \Illuminate\Config\Repository                $config
@@ -34,8 +39,10 @@ class Modules implements Countable
 	 */
 	public function __construct(Repository $config, Filesystem $files)
 	{
-		$this->config = $config;
-		$this->files  = $files;
+		$this->config 	= $config;
+		$this->files  	= $files;
+
+		$this->host 	= @$_SERVER['HTTP_HOST'];
 	}
 
 	/**
@@ -326,15 +333,15 @@ class Modules implements Countable
 
 		if (!is_null($host))
 		{
-			return in_array($host, $arr);	
+			return in_array($host, $arr);
 		}
 
-		if (!is_array($arr)) 
+		if (!is_array($arr) || is_null($this->host))
 		{
 			return $this->getProperty("{$slug}::enabled") === true;
 		}
 
-		return true;
+		return in_array($this->host, $arr);
 	}
 
 	/**
@@ -352,12 +359,12 @@ class Modules implements Countable
 			return !in_array($host, $arr);
 		}
 		
-		if (!is_array($arr)) 
+		if (!is_array($arr) || is_null($this->host))
 		{
 			return $this->getProperty("{$slug}::enabled") === false;
 		}
 
-		return false;
+		return !in_array($this->host, $arr);
 	}
 
 	/**
@@ -385,7 +392,7 @@ class Modules implements Countable
 			}	
 		}
 
-		if (!is_array($arr)) 
+		if (!is_array($arr))
 		{
 			return $this->setProperty("{$slug}::enabled", true);
 		}
