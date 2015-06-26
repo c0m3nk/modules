@@ -320,9 +320,21 @@ class Modules implements Countable
 	 * @param  string $slug
 	 * @return bool
 	 */
-	public function isEnabled($slug)
+	public function isEnabled($slug, $host=null)
 	{
-		return $this->getProperty("{$slug}::enabled") === true;
+		$arr = $this->getProperty("{$slug}::enabled");
+
+		if (!is_null($host))
+		{
+			return in_array($host, $arr);	
+		}
+
+		if (!is_array($arr)) 
+		{
+			return $this->getProperty("{$slug}::enabled") === true;
+		}
+
+		return true;
 	}
 
 	/**
@@ -331,9 +343,21 @@ class Modules implements Countable
 	 * @param  string $slug
 	 * @return bool
 	 */
-	public function isDisabled($slug)
+	public function isDisabled($slug, $host=null)
 	{
-		return $this->getProperty("{$slug}::enabled") === false;
+		$arr = $this->getProperty("{$slug}::enabled");
+
+		if (!is_null($host))
+		{
+			return !in_array($host, $arr);
+		}
+		
+		if (!is_array($arr)) 
+		{
+			return $this->getProperty("{$slug}::enabled") === false;
+		}
+
+		return false;
 	}
 
 	/**
@@ -342,9 +366,29 @@ class Modules implements Countable
 	 * @param  string $slug
 	 * @return bool
 	 */
-	public function enable($slug)
+	public function enable($slug, $host=null)
 	{
-		return $this->setProperty("{$slug}::enabled", true);
+		$arr = $this->getProperty("{$slug}::enabled");
+
+		if (!is_null($host))
+		{
+			if (!is_array($arr)) 
+			{
+				$arr = [];
+			}
+
+			if (!in_array($host, $arr))
+			{
+				array_push($arr, $host);
+
+				return $this->setProperty("{$slug}::enabled", $arr);
+			}	
+		}
+
+		if (!is_array($arr)) 
+		{
+			return $this->setProperty("{$slug}::enabled", true);
+		}
 	}
 
 	/**
@@ -353,9 +397,36 @@ class Modules implements Countable
 	 * @param  string $slug
 	 * @return bool
 	 */
-	public function disable($slug)
+	public function disable($slug, $host=null)
 	{
-		return $this->setProperty("{$slug}::enabled", false);
+		$arr = $this->getProperty("{$slug}::enabled");
+
+		if (!is_null($host))
+		{
+			if (!is_array($arr)) 
+			{
+				$arr = [];
+			}
+			
+			if (in_array($host, $arr))
+			{
+				foreach (array_keys($arr, $host) as $key) {
+					unset($arr[$key]);
+				}
+
+				if (is_null($arr))
+				{
+					$arr = [];
+				}
+
+				return $this->setProperty("{$slug}::enabled", $arr);
+			}
+		}
+
+		if (!is_array($arr)) 
+		{
+			return $this->setProperty("{$slug}::enabled", false);
+		}
 	}
 
 	/**
